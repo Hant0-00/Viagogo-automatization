@@ -27,7 +27,7 @@ class Event(models.Model):
         if self.source_price:
             self.min_price = float(self.source_price) * self.coefficient * 1.1111 * self.commission
             self.max_price = float(self.source_price) * 1.66 * 1.1111 * self.commission
-            self.profit_percentage = (float(self.source_price) - float(self.net_price)) / self.source_price
+            self.profit_percentage = (float(self.source_price) - float(self.net_price)) / float(self.source_price)
         super().save(*args, **kwargs)
 
     def __str__(self):
