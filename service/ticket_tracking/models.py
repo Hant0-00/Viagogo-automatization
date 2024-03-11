@@ -1,6 +1,15 @@
+from _decimal import Decimal
 from django.db import models
 
 class Event(models.Model):
+
+    coeff_list = {
+        1.11: '1.11',
+        1.75: '1.75',
+    }
+
+
+
     event = models.CharField(max_length=200)
     data_time = models.DateTimeField()
     location = models.CharField(max_length=200)
@@ -19,8 +28,8 @@ class Event(models.Model):
     min_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     max_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     commission = models.FloatField(default=1.015)
-    coefficient = models.FloatField(null=True, blank=True)
-    profit_percentage = models.IntegerField(null=True, blank=True)
+    coefficient = models.FloatField(null=True, blank=True, choices=coeff_list)
+    profit_percentage = models.DecimalField(max_digits=5, decimal_places=3, null=True, blank=True)
     bot = models.IntegerField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -31,4 +40,4 @@ class Event(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.event} - {str(self.number_event)}"
+        return f"{self.event} - {str(self.number_event)} - price: {str(self.price)}"

@@ -1,6 +1,8 @@
 import re
+from itertools import takewhile
 
 import selenium
+import telebot
 from _decimal import Decimal
 from datetime import datetime, timezone
 
@@ -35,7 +37,7 @@ class Command(BaseCommand):
         username_field = driver.find_element(By.ID, 'Login_UserName')
         username_field.send_keys('linchenko1995@gmail.com')
         password_field = driver.find_element(By.ID, 'Login_Password')
-        password_field.send_keys('Z2LE3m0zv@]c<[kP$o[B')
+        password_field.send_keys('66&n^Z2_9Fuv%v7R#*JJpb4&P5Sh-i9B')
 
         # Натискання кнопки входу
         login_button = WebDriverWait(driver, 10).until(
@@ -48,32 +50,139 @@ class Command(BaseCommand):
         time.sleep(2)
 
         elements = driver.find_elements(By.CLASS_NAME, 'i-chevron-right')
-        sector = driver.find_elements(By.XPATH, '//div[contains(@class, "h xs mbxxs t0 w100 ellip")]')
+        name_event = driver.find_elements(By.XPATH, '//div[contains(@class, "h xs mbxxs t0 w100 ellip")]')
         number_event = driver.find_elements(By.XPATH, '//span[contains(@class, "t xs cGry4 w100 ellip")]')
         data_time = driver.find_elements(By.XPATH, '//div[contains(@class, "t xs mbxxs nowrap")]')
         location = driver.find_elements(By.XPATH, '//div[contains(@class, "t xxs cGry4 w100 ellip")]')
         plus_click = driver.find_elements(By.XPATH, '//i[contains(@class, "t m i-magnify cGry4")]')
         wait = WebDriverWait(driver, 10)
 
-        for i in range(0, len(elements)):
+        for i in range(17, len(elements)):
             driver.execute_script("arguments[0].scrollIntoView();", elements[i])
             driver.execute_script("arguments[0].click();", elements[i])
             time.sleep(1)
+            table = driver.find_element(By.CLASS_NAME, 'js-listing-container.expanded')
+            table_rows = table.find_elements(By.TAG_NAME, "tr")[1::]
+            test_dict = {}
+            for test_row in table_rows:
+                test_sector = test_row.find_element(By.XPATH, './/div[contains(@class, "t xs absl t0 w100 ellip")]')
+                listing_id = test_row.get_attribute("data-id")
+                test_dict[listing_id]=test_sector.text
 
+            for key, value in test_dict.items():
+                try:
+                    event = Event.objects.get(announcement_number=key)
+                    driver.execute_script("arguments[0].click();", plus_click[i])
+                    time.sleep(2)
+                    # Очікування наявності елемента протягом 10 секунд
+                    select_element = wait.until(
+                        EC.presence_of_element_located((By.XPATH, '//select[contains(@class, "s")]')))
+
+                    driver.execute_script("arguments[0].click();", select_element)
+                    # Ініціалізація об'єкта Select
+                    select = Select(select_element)
+
+                    # Очікування наявності варіантів у випадаючому списку
+                    wait.until(EC.presence_of_all_elements_located((By.XPATH, "//select[@id='mDataSectionFilter']/option")))
+
+                    select.select_by_visible_text(value)
+                    my_table = driver.find_element(By.XPATH, '//table[contains(@class, "w100 bdr0 bGry9 fixed")]')
+                    all_tr = my_table.find_elements(By.TAG_NAME, "tr")
+                    tr_list = [tr.get_attribute("outerHTML") for tr in all_tr]
+                    if f'data-id="{event.announcement_number}"' not in tr_list[0] and event.state != 'False' and event.source_price:
+                        list_min_price = []
+                        for tr_test in all_tr:
+                            price_text = tr_test.find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+                            data_id = tr_test.get_attribute("data-id")
+                            if data_id == str(event.announcement_number):
+                                break
+                            elif data_id == '':
+                                list_min_price.append(price_text)
+                        min_price_in_site = 0
+                        for min_price in list_min_price:
+                            if float(min_price) > float(event.min_price):
+                                min_price_in_site = float(min_price)
+                                break
+                        if min_price_in_site:
+                            tr_element = driver.find_element(By.XPATH, f'//tr[@data-id="{event.announcement_number}"]')
+                            td_element = tr_element.find_element(By.XPATH, './/td[@data-edit-field="WebsitePriceVal"]')
+
+                            driver.execute_script("arguments[0].click();", td_element)
+
+                            input_element = wait.until(EC.visibility_of_element_located(
+                                (By.XPATH,
+                                 '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+
+                            driver.execute_script("arguments[0].value = '';", input_element)
+                            time.sleep(2)
+                            key = float(min_price_in_site) - 0.01
+                            input_element.send_keys(f"{key}+")
+                            input_element.send_keys(Keys.ENTER)
+
+                    """ Блок логіки збільшення ціни """
+                    if f'data-id="{event.announcement_number}"' in tr_list[0] and len(tr_list) > 1 and event.source_price:
+                        price_my_ticket = all_tr[0].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+                        price_second_ticket = all_tr[1].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+
+                        if float(float(price_second_ticket) - float(price_my_ticket)) > 0.01:
+                            print('2-й сценарій')
+                            td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
+                            driver.execute_script("arguments[0].click();", td_element)
+                            time.sleep(4)
+
+                            input_element = wait.until(EC.visibility_of_element_located(
+                                (By.XPATH,
+                                 '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+
+                            driver.execute_script("arguments[0].value = '';", input_element)
+
+                            key = float(price_second_ticket) - 0.01
+
+                            input_element.send_keys(f"{key}+")
+                            input_element.send_keys(Keys.ENTER)
+
+                    if len(tr_list) == 1 and event.source_price:
+                        td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
+                        driver.execute_script("arguments[0].click();", td_element)
+
+
+                        input_element = wait.until(EC.visibility_of_element_located(
+                            (By.XPATH,
+                                '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+
+                        driver.execute_script("arguments[0].value = '';", input_element)
+
+                        key = event.max_price
+                        input_element.send_keys(f"{key}+")
+                        input_element.send_keys(Keys.ENTER)
+
+                    wait.until(EC.presence_of_element_located(
+                            (By.XPATH, '//div[contains(@class, "close modal-close i-remove")]')))
+                    driver.execute_script("arguments[0].click()", driver.find_element(
+                        By.XPATH, '//div[contains(@class, "close modal-close i-remove")]'))
+
+                except ObjectDoesNotExist:
+                    break
+
+            time.sleep(1)
             # Знаходження таблиці
             table = driver.find_element(By.CLASS_NAME, 'js-listing-container.expanded')
             table_rows = table.find_elements(By.TAG_NAME, "tr")[1::]
 
             for row in table_rows:
-                # table_data = row.find_elements(By.TAG_NAME, "td")
                 listing_id = row.get_attribute("data-id")
                 state_check_box = row.find_element(By.XPATH, f'//input[contains(@id, "publish{listing_id}")]').is_selected()
                 edit_listing = row.find_element(By.CLASS_NAME, "t.m.i-pencil.cGry4")
+                sector = row.find_element(By.XPATH, './/div[@class="t xs absl t0 w100 ellip"]').text
+                ticket_quantity = int(row.find_element(By.XPATH, './/td[@data-edit-field="AvailableTickets"]').text)
+                price = Decimal(row.find_element(By.XPATH, './/td[@data-edit-field="WebsitePriceVal"]').text[1::])
+                net_price = Decimal(row.find_element(By.XPATH, './/td[@data-edit-field="ProceedsVal"]').text[1::])
+
 
                 # Чекає поки модальне модальне вікно стане видимим
 
-                wait.until(EC.invisibility_of_element_located((By.ID, 'modal')))
                 driver.execute_script("arguments[0].click();", edit_listing)
+                wait.until(EC.invisibility_of_element_located((By.XPATH, '//div[@class="l noclose js-modal-size"]')))
                 # -----------------#
 
                 time.sleep(1)
@@ -107,7 +216,7 @@ class Command(BaseCommand):
                     )
 
                 cancel_button.click()
-                time.sleep(2)
+                time.sleep(1)
                 #----------- Блок отримання номера білета у списку ---------
                 driver.execute_script("arguments[0].click();", plus_click[i])
                 time.sleep(2)
@@ -116,42 +225,17 @@ class Command(BaseCommand):
                     EC.presence_of_element_located((By.XPATH, '//select[contains(@class, "s")]')))
 
                 # Ініціалізація об'єкта Select
-                select = Select(select_element)
+                driver.execute_script("arguments[0].click();", select_element)
 
+                select = Select(select_element)
                 # Очікування наявності варіантів у випадаючому списку
                 wait.until(
                     EC.presence_of_all_elements_located((By.XPATH, "//select[@id='mDataSectionFilter']/option")))
 
-                select.select_by_visible_text(row.text.split("\n")[0])
+                select.select_by_visible_text(sector)
                 table_all_ticket = driver.find_element(By.XPATH, '//table[contains(@class, "w100 bdr0 bGry9 fixed")]')
                 all_tr = table_all_ticket.find_elements(By.TAG_NAME, "tr")
                 tr_list = [tr.get_attribute("outerHTML") for tr in all_tr]
-
-                min_price_in_site = all_tr[0].find_element(By.XPATH,
-                                                               './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1::]
-                try:
-                    event = Event.objects.get(announcement_number=int(listing_id))
-                    if f'data-id="{event.announcement_number}"' not in tr_list[0]:
-                        td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
-                        driver.execute_script("arguments[0].click();", td_element)
-                        time.sleep(4)
-
-                        input_element = wait.until(EC.visibility_of_element_located(
-                                (By.XPATH,
-                                 '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
-
-                        # if float(min_price_in_site) < float(event.max_price):
-                        time.sleep(7)
-                        driver.execute_script("arguments[0].value = '';", input_element)
-                        time.sleep(3)
-                        key = float(min_price_in_site) - 0.01
-                        # input_element.send_keys(str("{:.2f}".format(key)))
-                        input_element.send_keys('60.17')
-                        input_element.send_keys(Keys.ENTER)
-
-
-                except ObjectDoesNotExist:
-                    pass
 
                 for test in tr_list:
                     if f'data-id="{listing_id}"' in test:
@@ -159,11 +243,11 @@ class Command(BaseCommand):
 
                 wait.until(EC.presence_of_element_located(
                     (By.XPATH, '//div[contains(@class, "close modal-close i-remove")]')))
-                time.sleep(3)
+                time.sleep(1)
                 driver.execute_script("arguments[0].click()", driver.find_element(
                     By.XPATH, '//div[contains(@class, "close modal-close i-remove")]'))
 
-                row_data = []
+
 
                 # Отримання всіх number_event
                 text = driver.execute_script("return arguments[0].innerText;", number_event[i])
@@ -175,41 +259,45 @@ class Command(BaseCommand):
                 # -----------------------------#
 
                 try:
-                    table_data = row.find_elements(By.TAG_NAME, "td")
-                    for data in table_data:
-                        row_data.append(data.text)
-                    if len(row_data) > 0:
-                        """ Блок логіки зміни ціни"""
-                        try:
-                            event = Event.objects.get(announcement_number=int(listing_id))
-                            event.ticket_quantity = int(row_data[7])
-                            event.price=Decimal('68.95')
+                    """ Блок зміни ціни"""
+                    try:
+                        event = Event.objects.get(announcement_number=int(listing_id))
+                        if event.price != price:
+                            event.ticket_quantity = ticket_quantity
+                            event.price=price
                             event.bot=bot
                             event.save()
 
-                         # ------------------------------------- #
-                        except ObjectDoesNotExist:
-                            Event.objects.create(event=sector[i].text.replace(number_event[i].text, '').strip(),
+                            telegram_bot = telebot.TeleBot('6515402227:AAHxB2hDjHzZ9fX2jDlFRE__R0lb5yUiwA0')
+                            chat_id = 772530745
+                            message_text = f"Event: {event.event}\n" \
+                                            f"Data: {event.data_time}\n" \
+                                            f"Location: {event.location}\n" \
+                                            f"Ticket Quantity: {event.ticket_quantity}\n" \
+                                            f"Price: {event.price}"
+                            telegram_bot.send_message(chat_id, message_text)
+
+                    # ------------------------------------- #
+                    except ObjectDoesNotExist:
+                        Event.objects.create(event=name_event[i].text.replace(number_event[i].text, '').strip(),
                                                  data_time=datetime.strptime(data_time[i].text, "%a %b %d %Y %H:%M").replace(tzinfo=timezone.utc),
                                                  location=location[i].text,
                                                  number_event=int(match.group(1)),
                                                  announcement_number=int(listing_id),
-                                                 sector=row_data[1],
-                                                 ticket_quantity=int(row_data[7]),
+                                                 sector=sector,
+                                                 ticket_quantity=ticket_quantity,
                                                  features=str(features_list),
                                                  state=str(state_check_box),
-                                                 net_price=Decimal(row_data[6][1::]),
-                                                 price=Decimal(row_data[5][1::]),
+                                                 net_price=net_price,
+                                                 price=price,
                                                  bot=bot)
+
                 except selenium.common.exceptions.StaleElementReferenceException as e:
                     print(e)
-                    print('Тут не збереглось')
-
+                    print('-----------------------------------')
                     continue
-
 
             driver.execute_script("arguments[0].click();", elements[i])
 
-
-        # Закрийте браузер
+        # Закриття браузер
         driver.quit()
