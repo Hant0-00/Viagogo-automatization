@@ -1,11 +1,10 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv()
 
 token = '6515402227:AAHxB2hDjHzZ9fX2jDlFRE__R0lb5yUiwA0'
 chat_id = 772530745
