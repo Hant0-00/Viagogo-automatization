@@ -1,6 +1,4 @@
 import re
-from itertools import takewhile
-
 import selenium
 import telebot
 from _decimal import Decimal
@@ -10,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 import time
 import undetected_chromedriver as uc
-from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
@@ -18,6 +15,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from core import settings
+from core.settings import token
 from ticket_tracking.models import Event
 
 
@@ -57,7 +56,7 @@ class Command(BaseCommand):
         plus_click = driver.find_elements(By.XPATH, '//i[contains(@class, "t m i-magnify cGry4")]')
         wait = WebDriverWait(driver, 10)
 
-        for i in range(17, len(elements)):
+        for i in range(4, len(elements)):
             driver.execute_script("arguments[0].scrollIntoView();", elements[i])
             driver.execute_script("arguments[0].click();", elements[i])
             time.sleep(1)
@@ -74,9 +73,11 @@ class Command(BaseCommand):
                     event = Event.objects.get(announcement_number=key)
                     driver.execute_script("arguments[0].click();", plus_click[i])
                     time.sleep(2)
-                    # Очікування наявності елемента протягом 10 секунд
+
                     select_element = wait.until(
                         EC.presence_of_element_located((By.XPATH, '//select[contains(@class, "s")]')))
+
+                    wait.until(EC.visibility_of(select_element))
 
                     driver.execute_script("arguments[0].click();", select_element)
                     # Ініціалізація об'єкта Select
@@ -267,9 +268,8 @@ class Command(BaseCommand):
                             event.price=price
                             event.bot=bot
                             event.save()
-
-                            telegram_bot = telebot.TeleBot('6515402227:AAHxB2hDjHzZ9fX2jDlFRE__R0lb5yUiwA0')
-                            chat_id = 772530745
+                            telegram_bot = telebot.TeleBot(settings.token)
+                            chat_id = int(settings.chat_id)
                             message_text = f"Event: {event.event}\n" \
                                             f"Data: {event.data_time}\n" \
                                             f"Location: {event.location}\n" \
