@@ -16,7 +16,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from core import settings
-from core.settings import token
 from ticket_tracking.models import Event
 
 
