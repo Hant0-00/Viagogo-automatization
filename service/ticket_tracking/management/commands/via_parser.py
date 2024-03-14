@@ -10,6 +10,7 @@ import time
 import undetected_chromedriver as uc
 from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,8 +23,10 @@ from ticket_tracking.models import Event
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        # Ініціалізуйте веб-драйвер (ви повинні встановити веб-драйвер для вашого браузера)
-        driver = uc.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+
+        driver = uc.Chrome(options=chrome_options)
 
         # Відкрийте сторінку входу
         driver.get(
@@ -42,7 +45,7 @@ class Command(BaseCommand):
             EC.visibility_of_element_located((By.CSS_SELECTOR, '.btn.bk.js-nodoubleclick'))
         )
         login_button.click()
-
+        print("Залогінилось")
         time.sleep(1)
         driver.get('https://inv.viagogo.com/Listings')
         time.sleep(2)
@@ -55,7 +58,7 @@ class Command(BaseCommand):
         plus_click = driver.find_elements(By.XPATH, '//i[contains(@class, "t m i-magnify cGry4")]')
         wait = WebDriverWait(driver, 10)
 
-        for i in range(4, len(elements)):
+        for i in range(0, len(elements)):
             driver.execute_script("arguments[0].scrollIntoView();", elements[i])
             driver.execute_script("arguments[0].click();", elements[i])
             time.sleep(1)
