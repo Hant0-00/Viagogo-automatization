@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium_stealth import stealth
 
 from core import settings
 from ticket_tracking.models import Event
@@ -27,6 +28,16 @@ class Command(BaseCommand):
         chrome_options.add_argument("--headless")
 
         driver = uc.Chrome(options=chrome_options)
+
+        stealth(driver,
+                languages=["en-US", "en"],
+                vendor="Google Inc.",
+                # platform="Win32",
+                platform="Linux x86_64",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True,
+                )
 
         # Відкрийте сторінку входу
         driver.get(
@@ -45,7 +56,6 @@ class Command(BaseCommand):
             EC.visibility_of_element_located((By.CSS_SELECTOR, '.btn.bk.js-nodoubleclick'))
         )
         login_button.click()
-        print("Залогінилось")
         time.sleep(1)
         driver.get('https://inv.viagogo.com/Listings')
         time.sleep(2)
@@ -71,6 +81,7 @@ class Command(BaseCommand):
                 test_dict[listing_id]=test_sector.text
 
             for key, value in test_dict.items():
+
                 try:
                     event = Event.objects.get(announcement_number=key)
                     driver.execute_script("arguments[0].click();", plus_click[i])
