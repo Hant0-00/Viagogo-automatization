@@ -30,7 +30,7 @@ class Command(BaseCommand):
             try:
                 chrome_options = Options()
                 chrome_options.add_argument("--headless")
-                chrome_options.binary_location = '/usr/bin/google-chrome-stable'
+                # chrome_options.binary_location = '/usr/bin/google-chrome-stable'
                 driver = uc.Chrome(options=chrome_options)
 
                 stealth(driver,
@@ -120,72 +120,72 @@ class Command(BaseCommand):
                             my_table = driver.find_element(By.XPATH, '//table[contains(@class, "w100 bdr0 bGry9 fixed")]')
                             all_tr = my_table.find_elements(By.TAG_NAME, "tr")
                             tr_list = [tr.get_attribute("outerHTML") for tr in all_tr]
-                            if f'data-id="{event.announcement_number}"' not in tr_list[0] and event.state != 'False' and event.source_price:
-                                list_min_price = []
-                                for tr_test in all_tr:
-                                    price_text = tr_test.find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
-                                    data_id = tr_test.get_attribute("data-id")
-                                    if data_id == str(event.announcement_number):
-                                        break
-                                    elif data_id == '':
-                                        list_min_price.append(price_text)
-                                min_price_in_site = 0
-                                for min_price in list_min_price:
-                                    if float(min_price) > float(event.min_price):
-                                        min_price_in_site = float(min_price)
-                                        break
-                                if min_price_in_site:
-                                    tr_element = driver.find_element(By.XPATH, f'//tr[@data-id="{event.announcement_number}"]')
-                                    td_element = tr_element.find_element(By.XPATH, './/td[@data-edit-field="WebsitePriceVal"]')
+                            if len(tr_list) > 0:
+                                if f'data-id="{event.announcement_number}"' not in tr_list[0] and event.source_price:
+                                    list_min_price = []
+                                    for tr_test in all_tr:
+                                        price_text = tr_test.find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+                                        data_id = tr_test.get_attribute("data-id")
+                                        if data_id == str(event.announcement_number):
+                                            break
+                                        elif data_id == '':
+                                            list_min_price.append(price_text)
+                                    min_price_in_site = 0
+                                    for min_price in list_min_price:
+                                        if float(min_price) > float(event.min_price):
+                                            min_price_in_site = float(min_price)
+                                            break
+                                    if min_price_in_site:
+                                        tr_element = driver.find_element(By.XPATH, f'//tr[@data-id="{event.announcement_number}"]')
+                                        td_element = tr_element.find_element(By.XPATH, './/td[@data-edit-field="WebsitePriceVal"]')
 
-                                    driver.execute_script("arguments[0].click();", td_element)
+                                        driver.execute_script("arguments[0].click();", td_element)
 
-                                    input_element = wait.until(EC.visibility_of_element_located(
-                                        (By.XPATH,
-                                         '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+                                        input_element = wait.until(EC.visibility_of_element_located(
+                                            (By.XPATH,
+                                             '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
 
-                                    driver.execute_script("arguments[0].value = '';", input_element)
-                                    time.sleep(2)
-                                    key = float(min_price_in_site) - 0.01
-                                    input_element.send_keys(f"{key}+")
-                                    input_element.send_keys(Keys.ENTER)
+                                        driver.execute_script("arguments[0].value = '';", input_element)
+                                        time.sleep(2)
+                                        key = float(min_price_in_site) - 0.01
+                                        input_element.send_keys(f"{key}+")
+                                        input_element.send_keys(Keys.ENTER)
 
-                            """ Блок логіки збільшення ціни """
-                            if f'data-id="{event.announcement_number}"' in tr_list[0] and len(tr_list) > 1 and event.source_price:
-                                price_my_ticket = all_tr[0].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
-                                price_second_ticket = all_tr[1].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+                                    """ Блок логіки збільшення ціни """
+                                    if f'data-id="{event.announcement_number}"' in tr_list[0] and len(tr_list) > 1 and event.source_price:
+                                        price_my_ticket = all_tr[0].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
+                                        price_second_ticket = all_tr[1].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
 
-                                if float(float(price_second_ticket) - float(price_my_ticket)) > 0.01:
-                                    print('2-й сценарій')
-                                    td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
-                                    driver.execute_script("arguments[0].click();", td_element)
-                                    time.sleep(4)
+                                        if float(float(price_second_ticket) - float(price_my_ticket)) > 0.01:
+                                            print('2-й сценарій')
+                                            td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
+                                            driver.execute_script("arguments[0].click();", td_element)
+                                            time.sleep(4)
 
-                                    input_element = wait.until(EC.visibility_of_element_located(
-                                        (By.XPATH,
-                                         '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+                                            input_element = wait.until(EC.visibility_of_element_located(
+                                                (By.XPATH,
+                                                 '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
 
-                                    driver.execute_script("arguments[0].value = '';", input_element)
+                                            driver.execute_script("arguments[0].value = '';", input_element)
 
-                                    key = float(price_second_ticket) - 0.01
+                                            key = float(price_second_ticket) - 0.01
 
-                                    input_element.send_keys(f"{key}+")
-                                    input_element.send_keys(Keys.ENTER)
+                                            input_element.send_keys(f"{key}+")
+                                            input_element.send_keys(Keys.ENTER)
 
-                            if len(tr_list) == 1 and event.source_price:
-                                td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
-                                driver.execute_script("arguments[0].click();", td_element)
+                                    if len(tr_list) == 1 and event.source_price:
+                                        td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
+                                        driver.execute_script("arguments[0].click();", td_element)
 
+                                        input_element = wait.until(EC.visibility_of_element_located(
+                                            (By.XPATH,
+                                                '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
 
-                                input_element = wait.until(EC.visibility_of_element_located(
-                                    (By.XPATH,
-                                        '//td[@data-edit-field="WebsitePriceVal"]//div[@class="rel"]/input[@class="m0"]')))
+                                        driver.execute_script("arguments[0].value = '';", input_element)
 
-                                driver.execute_script("arguments[0].value = '';", input_element)
-
-                                key = event.max_price
-                                input_element.send_keys(f"{key}+")
-                                input_element.send_keys(Keys.ENTER)
+                                        key = event.max_price
+                                        input_element.send_keys(f"{key}+")
+                                        input_element.send_keys(Keys.ENTER)
 
                             wait.until(EC.presence_of_element_located(
                                     (By.XPATH, '//div[contains(@class, "close modal-close i-remove")]')))
@@ -331,6 +331,7 @@ class Command(BaseCommand):
                 # Закриття браузер
                 driver.quit()
             except Exception as e:
-                error_message = e.__class__.__name__
-                telegram_bot.send_message(chat_id, f"INFORMATION: {error_message}")
+                message_error = e.__class__.__name__
+                telegram_bot.send_message(chat_id, f'INFO:{message_error}')
                 continue
+
