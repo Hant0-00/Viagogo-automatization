@@ -105,7 +105,6 @@ class Command(BaseCommand):
                                 wait.until(EC.visibility_of(select_element))
                             except:
                                 # Закриття браузер
-                                print("Не знайшло")
                                 driver.quit()
                                 continue
 
@@ -157,7 +156,6 @@ class Command(BaseCommand):
                                         price_second_ticket = all_tr[1].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
 
                                         if float(float(price_second_ticket) - float(price_my_ticket)) > 0.01:
-                                            print('2-й сценарій')
                                             td_element = driver.find_element(By.XPATH, '//td[@class="txtc w15 editable"]')
                                             driver.execute_script("arguments[0].click();", td_element)
                                             time.sleep(4)
@@ -331,7 +329,7 @@ class Command(BaseCommand):
                 # Закриття браузер
                 driver.quit()
             except Exception as e:
-                message_error = e.__class__.__name__
-                telegram_bot.send_message(chat_id, f'INFO:{message_error}')
+                # message_error = e.__class__.__name__
+                # telegram_bot.send_message(chat_id, f'INFO:{message_error}')
                 continue
 
