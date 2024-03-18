@@ -99,8 +99,6 @@ class Command(BaseCommand):
 
                             select_element = driver.find_element(By.XPATH, '//select[contains(@class, "s")]')
 
-                            print(select_element)
-
                             try:
                                 wait.until(EC.visibility_of(select_element))
                             except:
