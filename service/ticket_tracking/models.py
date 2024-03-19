@@ -8,6 +8,8 @@ class Event(models.Model):
         (1.18, '1.18'),
     )
 
+
+
     event = models.CharField(max_length=200)
     data_time = models.DateTimeField()
     location = models.CharField(max_length=200)
