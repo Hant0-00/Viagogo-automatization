@@ -63,6 +63,7 @@ class Command(BaseCommand):
                 time.sleep(1)
                 driver.get('https://inv.viagogo.com/Listings')
                 time.sleep(2)
+                print('Парсер працює')
 
                 elements = driver.find_elements(By.CLASS_NAME, 'i-chevron-right')
                 name_event = driver.find_elements(By.XPATH, '//div[contains(@class, "h xs mbxxs t0 w100 ellip")]')

@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 token = '6515402227:AAHxB2hDjHzZ9fX2jDlFRE__R0lb5yUiwA0'
-chat_id = 772530745
+chat_id = 6236854001 
 
 
 # Quick-start development settings - unsuitable for production
