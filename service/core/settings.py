@@ -10,6 +10,8 @@ token = '6515402227:AAHxB2hDjHzZ9fX2jDlFRE__R0lb5yUiwA0'
 chat_id = 772530745
 
 
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 

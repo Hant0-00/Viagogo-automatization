@@ -3,12 +3,10 @@ from django.db import models
 
 class Event(models.Model):
 
-    coeff_list = {
-        1.11: '1.11',
-        1.75: '1.75',
-    }
-
-
+    coeff_list = (
+        (1.11, '1.11'),
+        (1.18, '1.18'),
+    )
 
     event = models.CharField(max_length=200)
     data_time = models.DateTimeField()
@@ -28,7 +26,7 @@ class Event(models.Model):
     min_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     max_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     commission = models.FloatField(default=1.015)
-    coefficient = models.FloatField(null=True, blank=True, choices=coeff_list)
+    coefficient = models.FloatField(null=True, blank=True, choices=coeff_list, default=coeff_list[0][0])
     profit_percentage = models.DecimalField(max_digits=5, decimal_places=3, null=True, blank=True)
     bot = models.IntegerField(null=True, blank=True)
 
@@ -36,7 +34,7 @@ class Event(models.Model):
         if self.source_price:
             self.min_price = float(self.source_price) * self.coefficient * 1.1111 * self.commission
             self.max_price = float(self.source_price) * 1.66 * 1.1111 * self.commission
-            self.profit_percentage = (float(self.source_price) - float(self.net_price)) / float(self.source_price)
+            self.profit_percentage = (float(self.net_price) - float(self.source_price)) / float(self.net_price)
         super().save(*args, **kwargs)
 
     def __str__(self):
