@@ -31,14 +31,20 @@ class Command(BaseCommand):
             try:
                 chrome_options = Options()
                 chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--disable-extensions")
+                chrome_options.add_argument("--disable-application-cache")
+                chrome_options.add_argument("--disable-gpu")
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-setuid-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
                 # chrome_options.binary_location = '/usr/bin/google-chrome-stable'
-                driver = uc.Chrome(options=chrome_options)
+                driver = uc.Chrome(options=chrome_options, version_main=122)
 
                 stealth(driver,
                         languages=["en-US", "en"],
                         vendor="Google Inc.",
-                        platform="Win64",
-                        # platform="Linux x86_64",
+                        # platform="Win64",
+                        platform="Linux x86_64",
                         webgl_vendor="Intel Inc.",
                         renderer="Intel Iris OpenGL Engine",
                         fix_hairline=True,
