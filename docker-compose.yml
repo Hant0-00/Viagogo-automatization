@@ -1,11 +1,12 @@
 services:
-  web:
+  worker-1:
     build: .
     volumes:
       - ./service:/service
+    command: python manage.py runserver 0.0.0.0:80
     ports:
       - '80:80'
-    restart: on-failure
+    restart:  on-failure
 
   worker-2:
     build: .

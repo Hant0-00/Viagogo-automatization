@@ -43,19 +43,16 @@ class Command(BaseCommand):
                         fix_hairline=True,
                         )
 
-                # Відкрийте сторінку входу
                 driver.get(
                     'https://account.viagogo.com/login/v2?ReturnUrl=%2Fauthorize%3Fclient_id%3Diqgpy5KIA4HZx0QBRFlb%26response_type%3Dcode%26scope%3Dinternal%2Bread%253Auser%2Bwrite%253Auser%2Bread%253Asellerlistings%2Bwrite%253Asellerlistings%2Bwrite%253Arequestedevents%2Bwrite%253Asales%2Bread%253Asales%2Bwrite%253Aworkitems%2Bread%253Aworkitems%2Bim%253Acanuse%26redirect_uri%3Dhttps%253A%252F%252Finv.viagogo.com%252Flogin%252Fcallback')
 
                 time.sleep(1)
 
-                # Заповнення форми входу
                 username_field = driver.find_element(By.ID, 'Login_UserName')
                 username_field.send_keys('linchenko1995@gmail.com')
                 password_field = driver.find_element(By.ID, 'Login_Password')
                 password_field.send_keys('66&n^Z2_9Fuv%v7R#*JJpb4&P5Sh-i9B')
 
-                # Натискання кнопки входу
                 login_button = WebDriverWait(driver, 10).until(
                     EC.visibility_of_element_located((By.CSS_SELECTOR, '.btn.bk.js-nodoubleclick'))
                 )
@@ -63,6 +60,7 @@ class Command(BaseCommand):
                 time.sleep(1)
                 driver.get('https://inv.viagogo.com/Listings')
                 time.sleep(2)
+                print('Парсер працює')
 
                 elements = driver.find_elements(By.CLASS_NAME, 'i-chevron-right')
                 name_event = driver.find_elements(By.XPATH, '//div[contains(@class, "h xs mbxxs t0 w100 ellip")]')
@@ -99,20 +97,16 @@ class Command(BaseCommand):
 
                             select_element = driver.find_element(By.XPATH, '//select[contains(@class, "s")]')
 
-                            print(select_element)
-
                             try:
                                 wait.until(EC.visibility_of(select_element))
                             except:
-                                # Закриття браузер
+                                # Closing the browser
                                 driver.quit()
                                 continue
 
                             driver.execute_script("arguments[0].click();", select_element)
-                            # Ініціалізація об'єкта Select
                             select = Select(select_element)
 
-                            # Очікування наявності варіантів у випадаючому списку
                             wait.until(EC.presence_of_all_elements_located((By.XPATH, "//select[@id='mDataSectionFilter']/option")))
 
                             select.select_by_visible_text(value)
@@ -150,7 +144,7 @@ class Command(BaseCommand):
                                         input_element.send_keys(f"{key}+")
                                         input_element.send_keys(Keys.ENTER)
 
-                                    """ Блок логіки збільшення ціни """
+                                    """ Price increase logic block """
                                     if f'data-id="{event.announcement_number}"' in tr_list[0] and len(tr_list) > 1 and event.source_price:
                                         price_my_ticket = all_tr[0].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
                                         price_second_ticket = all_tr[1].find_element(By.XPATH, './/td[contains(@data-edit-field, "WebsitePriceVal")]').text[1:]
@@ -194,7 +188,7 @@ class Command(BaseCommand):
                             break
 
                     time.sleep(1)
-                    # Знаходження таблиці
+
                     table = driver.find_element(By.CLASS_NAME, 'js-listing-container.expanded')
                     table_rows = table.find_elements(By.TAG_NAME, "tr")[1::]
 
@@ -207,12 +201,8 @@ class Command(BaseCommand):
                         price = Decimal(row.find_element(By.XPATH, './/td[@data-edit-field="WebsitePriceVal"]').text[1::])
                         net_price = Decimal(row.find_element(By.XPATH, './/td[@data-edit-field="ProceedsVal"]').text[1::])
 
-
-                        # Чекає поки модальне модальне вікно стане видимим
-
                         driver.execute_script("arguments[0].click();", edit_listing)
                         wait.until(EC.invisibility_of_element_located((By.XPATH, '//div[@class="l noclose js-modal-size"]')))
-                        # -----------------#
 
                         time.sleep(1)
                         driver.execute_script("arguments[0].scrollIntoView();", driver.find_element(By.CLASS_NAME, 'cfix'))
@@ -221,13 +211,11 @@ class Command(BaseCommand):
                                 (By.CSS_SELECTOR, 'input.js-restriction-on-use-listing-note-check'))
                         )
 
-                        # Знайдіть елемент, до якого ви хочете прокрутити
                         element_to_scroll_to = driver.find_element(By.CLASS_NAME, "cfix")
 
                         driver.execute_script("arguments[0].scrollIntoView();", element_to_scroll_to)
                         time.sleep(0.5)
 
-                        # Знаходимо всі чекбокси, які вибрані (checked)
                         selected_checkboxes = driver.find_elements(By.XPATH,
                                                                        '//input[@name="Listing.ListingNoteIds" and @checked]')
 
@@ -239,25 +227,21 @@ class Command(BaseCommand):
                         driver.execute_script("arguments[0].scrollIntoView();",
                                                 driver.find_element(By.CLASS_NAME, 'fg.rel'))
 
-                        # Очікуйте, доки елемент не стане видимим
                         cancel_button = WebDriverWait(driver, 10).until(
                                 EC.visibility_of_element_located((By.XPATH, '//button[text()="Cancel"]'))
                             )
 
                         cancel_button.click()
                         time.sleep(1)
-                        #----------- Блок отримання номера білета у списку ---------
                         driver.execute_script("arguments[0].click();", plus_click[i])
                         time.sleep(2)
 
                         select_element = wait.until(
                             EC.presence_of_element_located((By.XPATH, '//select[contains(@class, "s")]')))
 
-                        # Ініціалізація об'єкта Select
                         driver.execute_script("arguments[0].click();", select_element)
 
                         select = Select(select_element)
-                        # Очікування наявності варіантів у випадаючому списку
                         wait.until(
                             EC.presence_of_all_elements_located((By.XPATH, "//select[@id='mDataSectionFilter']/option")))
 
@@ -276,13 +260,9 @@ class Command(BaseCommand):
                         driver.execute_script("arguments[0].click()", driver.find_element(
                             By.XPATH, '//div[contains(@class, "close modal-close i-remove")]'))
 
-
-
-                        # Отримання всіх number_event
                         text = driver.execute_script("return arguments[0].innerText;", number_event[i])
                         pattern = re.compile(r'\[(\d+)\]')
 
-                        # Пошук у тексті за допомогою регулярного виразу
                         match = pattern.search(text)
 
                         # -----------------------------#
@@ -326,7 +306,7 @@ class Command(BaseCommand):
 
                     driver.execute_script("arguments[0].click();", elements[i])
 
-                # Закриття браузер
+                # Closing the browser
                 driver.quit()
             except Exception as e:
                 # message_error = e.__class__.__name__
