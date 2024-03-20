@@ -27,6 +27,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         while True:
+            print("circle start")
             try:
                 chrome_options = Options()
                 chrome_options.add_argument("--headless")
@@ -309,6 +310,7 @@ class Command(BaseCommand):
                 # Closing the browser
                 driver.quit()
             except Exception as e:
+                print("ERR", e)
                 # message_error = e.__class__.__name__
                 # telegram_bot.send_message(chat_id, f'INFO:{message_error}')
                 continue
