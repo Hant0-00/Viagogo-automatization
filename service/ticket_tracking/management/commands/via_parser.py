@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 import time
 import undetected_chromedriver as uc
+from fake_useragent import UserAgent
 from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.chrome.options import Options
@@ -16,6 +17,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium_stealth import stealth
+from selenium import webdriver
 
 from core import settings
 from ticket_tracking.models import Event
@@ -30,15 +32,23 @@ class Command(BaseCommand):
             print("circle start")
             try:
                 chrome_options = Options()
+                ua = UserAgent()
+                userAgent = ua.random
                 chrome_options.add_argument("--headless")
+                print(userAgent)
+                chrome_options.add_argument(f"user-agent={userAgent}")
                 chrome_options.add_argument("--disable-extensions")
                 chrome_options.add_argument("--disable-application-cache")
                 chrome_options.add_argument("--disable-gpu")
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-setuid-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--disable-blink-features=AutomationControlled")
                 # chrome_options.binary_location = '/usr/bin/google-chrome-stable'
-                driver = uc.Chrome(options=chrome_options, version_main=122)
+                # driver = uc.Chrome(options=chrome_options, version_main=122)
+                chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                chrome_options.add_experimental_option('useAutomationExtension', False)
+                driver = webdriver.Chrome(options=chrome_options)
 
                 stealth(driver,
                         languages=["en-US", "en"],
@@ -64,9 +74,7 @@ class Command(BaseCommand):
                     EC.visibility_of_element_located((By.CSS_SELECTOR, '.btn.bk.js-nodoubleclick'))
                 )
                 login_button.click()
-                driver.save_screenshot('screen1.png')
                 time.sleep(1)
-                driver.save_screenshot('screen2.png')
                 driver.get('https://inv.viagogo.com/Listings')
                 time.sleep(2)
                 print('Парсер працює')
@@ -99,7 +107,6 @@ class Command(BaseCommand):
                             event = Event.objects.get(announcement_number=key)
                             driver.execute_script("arguments[0].click();", plus_click[i])
                             time.sleep(2)
-                            # driver.save_screenshot(f"screeen{key}.png")
                             WebDriverWait(driver, 20).until(
                                 EC.presence_of_element_located((By.XPATH, '//select[contains(@class, "s")]')))
 

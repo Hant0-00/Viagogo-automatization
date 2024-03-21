@@ -21,6 +21,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     apt-get update && \
     apt-get install -y google-chrome-stable
 
+
 # Встановлення шляху до виконуваного файлу Google Chrome
 ENV CHROME_BIN=/usr/bin/google-chrome-stable
 
