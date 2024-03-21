@@ -116,8 +116,6 @@ class Command(BaseCommand):
                                 wait.until(EC.visibility_of(select_element))
                             except:
                                 # Closing the browser
-                                driver.close()
-                                time.sleep(1)
                                 driver.quit()
                                 continue
 
@@ -324,13 +322,8 @@ class Command(BaseCommand):
                     driver.execute_script("arguments[0].click();", elements[i])
 
                 # Closing the browser
-                driver.close()
-                time.sleep(1)
                 driver.quit()
             except Exception as e:
-                driver.close()
-                time.sleep(1)
-                driver.quit()
                 print("ERR", e)
                 # message_error = e.__class__.__name__
                 # telegram_bot.send_message(chat_id, f'INFO:{message_error}')
